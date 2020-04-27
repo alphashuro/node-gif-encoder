@@ -7,7 +7,7 @@
         "gif-encoder.cpp",
         "lzw-encoder.cpp",
         "typed-neu-quant.cpp",
-        "byte.cpp",
+        # "byte.cpp",
         "byte-array.cpp"
       ],
       "include_dirs": [

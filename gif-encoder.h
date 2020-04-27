@@ -5,7 +5,7 @@
 #include <node_object_wrap.h>
 #include <boost/optional.hpp>
 #include <vector>
-#include "byte.h"
+// #include "int.h"
 #include "lzw-encoder.h"
 #include "typed-neu-quant.h"
 #include "cmath"
@@ -22,14 +22,14 @@ class GIFEncoder : public node::ObjectWrap
 public:
   static void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module);
 
-  vector<byte> image; // current frame
+  vector<int> image; // current frame
   void getImagePixels();
 
 private:
   int width, height;
 
   // transparent color if given
-  boost::optional<byte> transparent;
+  boost::optional<int> transparent;
 
   // transparent index in color table
   unsigned int transIndex = 0;
@@ -40,13 +40,13 @@ private:
   // frame delay (hundredths)
   unsigned int delay = 0;
 
-  vector<byte> pixels;        // BGR byte array from frame
-  vector<byte> indexedPixels; // converted frame indexed to palette
-  int colorDepth = 8;         // number of bit planes
-  vector<byte> colorTab;      // RGB palette
-  vector<bool> usedEntry;     // active palette entries
-  int palSize = 7;            // color table size (bits-1)
-  int dispose = -1;           // disposal code (-1 = use default)
+  vector<int> pixels;        // BGR int array from frame
+  vector<int> indexedPixels; // converted frame indexed to palette
+  int colorDepth = 8;        // number of bit planes
+  vector<int> colorTab;      // RGB palette
+  vector<bool> usedEntry;    // active palette entries
+  int palSize = 7;           // color table size (bits-1)
+  int dispose = -1;          // disposal code (-1 = use default)
   bool firstFrame = true;
   int sample = 10; // default sample interval for quantizer
 
@@ -78,8 +78,8 @@ private:
 
   void writePixels();
   void analyzePixels();
-  int findClosest(byte c);
-  void writeShort(byte pValue);
+  int findClosest(int c);
+  // void writeShort(int pValue);
   void writeShort(int pValue);
   void writeLSD();
   void writePalette();

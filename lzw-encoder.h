@@ -25,7 +25,7 @@
 
 #include "vector"
 #include "gif-encoder.h"
-#include "byte.h"
+// #include "int.h"
 #include "byte-array.h"
 
 using namespace std;
@@ -39,9 +39,9 @@ class LZWEncoder
 {
 public:
   int width, height;
-  vector<byte> pixels;
-  byte initCodeSize;
-  byte accum[256];
+  vector<int> pixels;
+  int initCodeSize;
+  int accum[256];
   int htab[HSIZE];
   int codetab[HSIZE];
   int cur_accum, cur_bits = 0;
@@ -67,7 +67,7 @@ public:
   int curPixel;
   int n_bits;
 
-  LZWEncoder(int width, int height, vector<byte> pixels, int colorDepth);
+  LZWEncoder(int width, int height, vector<int> pixels, int colorDepth);
 
   ~LZWEncoder();
 
@@ -80,7 +80,7 @@ public:
 
   // Add a character to the end of the current packet, and if it is 254
   // characters, flush the packet to disk.
-  void char_out(byte c, ByteArray outs);
+  void char_out(int c, ByteArray outs);
 
   int MAXCODE(int n_bits);
 
@@ -92,7 +92,7 @@ public:
   void cl_hash(int hsize);
 
   // Return the next pixel from the image
-  byte nextPixel();
+  int nextPixel();
 
   void output(int code, ByteArray outs);
 };

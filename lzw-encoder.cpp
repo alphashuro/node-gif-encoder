@@ -26,26 +26,26 @@ using namespace std;
 
 namespace gifencoder
 {
-// byte gifencoder::EOF = -1;
+// int gifencoder::EOF = -1;
 int masks[] = {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F,
                0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF,
                0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF};
 
-LZWEncoder::LZWEncoder(int width, int height, vector<byte> pixels, int colorDepth) : width(width),
-                                                                                     height(height),
-                                                                                     pixels(pixels)
+LZWEncoder::LZWEncoder(int width, int height, vector<int> pixels, int colorDepth) : width(width),
+                                                                                    height(height),
+                                                                                    pixels(pixels)
 {
-  initCodeSize = byte(colorDepth < 2 ? 2 : colorDepth);
+  initCodeSize = int(colorDepth < 2 ? 2 : colorDepth);
 }
 
 void LZWEncoder::encode(ByteArray &outs)
 
 {
-  outs.writeByte(initCodeSize); // write "initial code size" byte
+  outs.writeByte(initCodeSize); // write "initial code size" int
   remaining = width * height;   // reset navigation variables
   curPixel = 0;
   compress(int(initCodeSize) + 1, outs); // compress and write the pixel data
-  outs.writeByte(byte(0));               // write block terminator
+  outs.writeByte(int(0));                // write block terminator
 }
 
 void LZWEncoder::compress(int init_bits, ByteArray outs)
@@ -127,7 +127,7 @@ void LZWEncoder::flush_char(ByteArray outs)
 {
   if (a_count > 0)
   {
-    outs.writeByte(byte(a_count));
+    outs.writeByte(int(a_count));
     outs.writeBytes(accum, 0, a_count);
     a_count = 0;
   }
@@ -135,7 +135,7 @@ void LZWEncoder::flush_char(ByteArray outs)
 
 // Add a character to the end of the current packet, and if it is 254
 // characters, flush the packet to disk.
-void LZWEncoder::char_out(byte c, ByteArray outs)
+void LZWEncoder::char_out(int c, ByteArray outs)
 {
   accum[a_count++] = c;
   if (a_count >= 254)
@@ -165,13 +165,13 @@ void LZWEncoder::cl_hash(int hsize)
 }
 
 // Return the next pixel from the image
-byte LZWEncoder::nextPixel()
+int LZWEncoder::nextPixel()
 {
   if (remaining == 0)
-    return byte(EOF);
+    return int(EOF);
   --remaining;
-  byte pix = pixels[curPixel++];
-  return byte(int(pix) & 0xff);
+  int pix = pixels[curPixel++];
+  return int(int(pix) & 0xff);
 }
 
 void LZWEncoder::output(int code, ByteArray outs)
@@ -187,7 +187,7 @@ void LZWEncoder::output(int code, ByteArray outs)
 
   while (cur_bits >= 8)
   {
-    char_out(byte(cur_accum & 0xff), outs);
+    char_out(int(cur_accum & 0xff), outs);
     cur_accum >>= 8;
     cur_bits -= 8;
   }
@@ -216,7 +216,7 @@ void LZWEncoder::output(int code, ByteArray outs)
     // At EOF, write the rest of the buffer.
     while (cur_bits > 0)
     {
-      char_out(byte(cur_accum & 0xff), outs);
+      char_out(int(cur_accum & 0xff), outs);
       cur_accum >>= 8;
       cur_bits -= 8;
     }

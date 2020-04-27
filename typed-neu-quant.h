@@ -2,7 +2,7 @@
 #define TNEUQUANT_H
 
 #include "gif-encoder.h"
-#include "byte.h"
+// #include "int.h"
 
 using namespace std;
 
@@ -13,7 +13,7 @@ class TypedNeuQuant
 {
 public:
   static const int netsize = 256; // number of colors used
-  vector<byte> pixels;
+  vector<int> pixels;
   int samplefac;
 
   int ncycles = 100; // number of learning cycles
@@ -63,7 +63,7 @@ public:
   int freq[netsize];
   int radpower[netsize >> 3];
 
-  TypedNeuQuant(vector<byte>, int);
+  TypedNeuQuant(vector<int>, int);
 
   void init();
   void unbiasnet();
@@ -76,8 +76,8 @@ public:
 
 public:
   void buildColormap();
-  vector<byte> getColormap();
-  int lookupRGB(byte, byte, byte);
+  vector<int> getColormap();
+  int lookupRGB(int, int, int);
 };
 } // namespace gifencoder
 

@@ -15,7 +15,7 @@ namespace gifencoder
   > pixels = [r, g, b, r, g, b, r, g, b, ..]
   >
 */
-TypedNeuQuant::TypedNeuQuant(vector<byte> p, int s) : pixels(p), samplefac(s){};
+TypedNeuQuant::TypedNeuQuant(vector<int> p, int s) : pixels(p), samplefac(s){};
 
 void TypedNeuQuant::init()
 {
@@ -37,7 +37,7 @@ void TypedNeuQuant::init()
 /*
     Private Method: unbiasnet
 
-    unbiases network to give byte values 0..255 and record position i to prepare for sort
+    unbiases network to give int values 0..255 and record position i to prepare for sort
   */
 void TypedNeuQuant::unbiasnet()
 {
@@ -384,9 +384,9 @@ void TypedNeuQuant::buildColormap()
     > [r, g, b, r, g, b, r, g, b, ..]
     >
   */
-vector<byte> TypedNeuQuant::getColormap()
+vector<int> TypedNeuQuant::getColormap()
 {
-  vector<byte> map;
+  vector<int> map;
   int index[netsize];
 
   for (int i = 0; i < netsize; i++)
@@ -396,9 +396,9 @@ vector<byte> TypedNeuQuant::getColormap()
   for (int l = 0; l < netsize; l++)
   {
     int j = index[l];
-    map.push_back(byte(network[j][0]));
-    map.push_back(byte(network[j][1]));
-    map.push_back(byte(network[j][2]));
+    map.push_back(int(network[j][0]));
+    map.push_back(int(network[j][1]));
+    map.push_back(int(network[j][2]));
   }
   return map;
 };
@@ -408,7 +408,7 @@ vector<byte> TypedNeuQuant::getColormap()
     looks for the closest *r*, *g*, *b* color in the map and
     returns its index
   */
-int TypedNeuQuant::lookupRGB(byte b, byte g, byte r)
+int TypedNeuQuant::lookupRGB(int b, int g, int r)
 {
   return inxsearch(int(b), int(g), int(r));
 };

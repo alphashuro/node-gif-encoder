@@ -82,7 +82,7 @@ void GIFEncoder::Start(const FunctionCallbackInfo<Value> &args)
       s.begin(),
       s.end(),
       encoder->out.data.begin(),
-      [](char c) { return byte(c); });
+      [](char c) { return int(c); });
 
   encoder->started = true;
 }
@@ -138,7 +138,7 @@ void GIFEncoder::AddFrame(const v8::FunctionCallbackInfo<v8::Value> &args)
   encoder->image.resize(length);
 
   transform(img.begin(), img.end(), encoder->image.begin(), [](char c) {
-    return byte(c);
+    return int(c);
   });
 
   encoder->getImagePixels(); // convert to correct format if necessary
@@ -167,7 +167,7 @@ void GIFEncoder::AddFrame(const v8::FunctionCallbackInfo<v8::Value> &args)
 void GIFEncoder::getImagePixels()
 {
   int size = width * height * 3;
-  byte p[size];
+  int p[size];
 
   int count = 0;
 
@@ -177,7 +177,7 @@ void GIFEncoder::getImagePixels()
     {
       int b = (i * width * 4) + j * 4;
 
-      p[count++] = byte(image[b]);
+      p[count++] = int(image[b]);
       p[count++] = image[b + 1];
       p[count++] = image[b + 2];
     }
@@ -197,7 +197,7 @@ void GIFEncoder::analyzePixels()
   int len = pixels.size();
   int nPix = len / 3;
 
-  byte indexedPixels[nPix];
+  int indexedPixels[nPix];
 
   TypedNeuQuant imgq(pixels, sample);
   imgq.buildColormap(); // create reduced palette
@@ -212,7 +212,7 @@ void GIFEncoder::analyzePixels()
         pixels[k++] & 0xff,
         pixels[k++] & 0xff);
     usedEntry[index] = true;
-    indexedPixels[j] = byte(index);
+    indexedPixels[j] = int(index);
   }
 
   pixels.clear();
@@ -227,9 +227,9 @@ void GIFEncoder::analyzePixels()
     // ensure that pixels with full transparency in the RGBA image are using the selected transparent color index in the indexed image.
     for (int pixelIndex = 0; pixelIndex < nPix; pixelIndex++)
     {
-      if (image[pixelIndex * 4 + 3] == byte(0))
+      if (image[pixelIndex * 4 + 3] == int(0))
       {
-        indexedPixels[pixelIndex] = byte(transIndex);
+        indexedPixels[pixelIndex] = int(transIndex);
       }
     }
   }
@@ -238,25 +238,25 @@ void GIFEncoder::analyzePixels()
 /*
   Returns index of palette color closest to c
 */
-int GIFEncoder::findClosest(byte c)
+int GIFEncoder::findClosest(int c)
 {
   if (colorTab.size() == 0)
     return -1;
 
-  byte r = (c & 0xFF0000) >> 16;
-  byte g = (c & 0x00FF00) >> 8;
-  byte b = (c & 0x0000FF);
+  int r = (c & 0xFF0000) >> 16;
+  int g = (c & 0x00FF00) >> 8;
+  int b = (c & 0x0000FF);
   int minpos = 0;
-  byte dmin = byte(256 * 256 * 256);
+  int dmin = int(256 * 256 * 256);
   int len = colorTab.size();
 
   for (int i = 0; i < len;)
   {
     int index = i / 3;
-    byte dr = r - (colorTab[i++] & 0xff);
-    byte dg = g - (colorTab[i++] & 0xff);
-    byte db = b - (colorTab[i++] & 0xff);
-    byte d = dr * dr + dg * dg + db * db;
+    int dr = r - (colorTab[i++] & 0xff);
+    int dg = g - (colorTab[i++] & 0xff);
+    int db = b - (colorTab[i++] & 0xff);
+    int d = dr * dr + dg * dg + db * db;
     if (usedEntry[index] && (d < dmin))
     {
       dmin = d;
@@ -273,8 +273,8 @@ int GIFEncoder::findClosest(byte c)
 void GIFEncoder::writeLSD()
 {
   // logical screen size
-  writeShort(byte(width));
-  writeShort(byte(height));
+  writeShort(int(width));
+  writeShort(int(height));
 
   // packed fields
   out.writeByte(
@@ -288,7 +288,7 @@ void GIFEncoder::writeLSD()
   out.writeByte(0); // pixel aspect ratio - assume 1:1
 };
 
-void GIFEncoder::writeShort(byte pValue)
+void GIFEncoder::writeShort(int pValue)
 {
   out.writeByte(pValue & 0xFF);
   int np = int(pValue) >> 8;
@@ -296,10 +296,10 @@ void GIFEncoder::writeShort(byte pValue)
   out.writeByte(nb);
 };
 
-void GIFEncoder::writeShort(int pValue)
-{
-  writeShort(byte(pValue));
-};
+// void GIFEncoder::writeShort(int pValue)
+// {
+//   writeShort(int(pValue));
+// };
 
 void GIFEncoder::writePalette()
 {
@@ -320,7 +320,7 @@ void GIFEncoder::writeNetscapeExt()
   out.writeUTFBytes("NETSCAPE2.0"); // app id + auth code
   out.writeByte(3);                 // sub-block size
   out.writeByte(1);                 // loop sub-block id
-  writeShort(byte(repeat));         // loop count (extra iterations, 0=repeat forever)
+  writeShort(int(repeat));          // loop count (extra iterations, 0=repeat forever)
   out.writeByte(0);                 // block terminator
 };
 
@@ -359,7 +359,7 @@ void GIFEncoder::writeGraphicCtrlExt()
       transp // 8 transparency flag
   );
 
-  writeShort(byte(delay));   // delay x 1/100 sec
+  writeShort(int(delay));    // delay x 1/100 sec
   out.writeByte(transIndex); // transparent color index
   out.writeByte(0);          // block terminator
 };
