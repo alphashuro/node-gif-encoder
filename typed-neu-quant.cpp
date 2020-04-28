@@ -1,4 +1,7 @@
 #include "typed-neu-quant.h"
+#include "iostream"
+#include "cstdlib"
+#include "vector"
 
 namespace gifencoder
 {
@@ -68,14 +71,14 @@ void TypedNeuQuant::altersingle(int alpha, int i, int b, int g, int r)
   */
 void TypedNeuQuant::alterneigh(int radius, int i, int b, int g, int r)
 {
-  int lo = i - radius;
+  int lo = abs(i - radius);
   int hi = i + radius < netsize ? i + radius : netsize;
 
   int j = i + 1;
   int k = i - 1;
   int m = 1;
 
-  int p, a;
+  int a;
   while ((j < hi) || (k > lo))
   {
     a = radpower[m++];
@@ -116,10 +119,10 @@ int TypedNeuQuant::contest(int b, int g, int r)
   int bestpos = -1;
   int bestbiaspos = bestpos;
 
-  int i, n, dist, biasdist, betafreq;
+  int i, dist, biasdist, betafreq;
   for (i = 0; i < netsize; i++)
   {
-    dist = (network[i][0] - b) + (network[i][1] - g) + (network[i][2] - r);
+    dist = abs(network[i][0] - b) + abs(network[i][1] - g) + abs(network[i][2] - r);
     if (dist < bestd)
     {
       bestd = dist;
@@ -151,7 +154,7 @@ int TypedNeuQuant::contest(int b, int g, int r)
   */
 void TypedNeuQuant::inxbuild()
 {
-  int i, j, p, q, smallpos, smallval, previouscol = 0, startpos = 0;
+  int i, j, smallpos, smallval, previouscol = 0, startpos = 0;
   for (i = 0; i < netsize; i++)
   {
     smallpos = i;
@@ -334,7 +337,9 @@ void TypedNeuQuant::learn()
 
     altersingle(alpha, j, b, g, r);
     if (rad != 0)
+    {
       alterneigh(rad, j, b, g, r); // alter neighbours
+    }
 
     pix += step;
     if (pix >= lengthcount)
@@ -392,13 +397,12 @@ vector<int> TypedNeuQuant::getColormap()
   for (int i = 0; i < netsize; i++)
     index[network[i][3]] = i;
 
-  int k = 0;
   for (int l = 0; l < netsize; l++)
   {
     int j = index[l];
-    map.push_back(int(network[j][0]));
-    map.push_back(int(network[j][1]));
-    map.push_back(int(network[j][2]));
+    map.push_back(network[j][0]);
+    map.push_back(network[j][1]);
+    map.push_back(network[j][2]);
   }
   return map;
 };

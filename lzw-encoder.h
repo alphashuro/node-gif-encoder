@@ -25,8 +25,6 @@
 
 #include "vector"
 #include "gif-encoder.h"
-// #include "int.h"
-#include "byte-array.h"
 
 using namespace std;
 

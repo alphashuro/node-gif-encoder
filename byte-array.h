@@ -6,19 +6,21 @@
 
 using namespace std;
 
+namespace gifencoder
+{
 class ByteArray
 {
 public:
-  vector<int> data;
+  vector<unsigned char> data;
 
   ByteArray();
   ~ByteArray();
 
-  vector<int> getData();
-
-  // void writeByte(int b);
+  vector<unsigned char> getData();
 
   void writeByte(int b);
+
+  void writeByte(char b);
 
   void writeUTFBytes(string s);
 
@@ -28,5 +30,7 @@ public:
 
   void writeBytes(vector<int> bytes);
 };
+
+} // namespace gifencoder
 
 #endif

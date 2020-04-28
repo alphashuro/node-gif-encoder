@@ -1,8 +1,19 @@
 #include "byte-array.h"
 
-vector<int> ByteArray::getData()
+namespace gifencoder
+{
+
+ByteArray::ByteArray(){};
+ByteArray::~ByteArray(){};
+
+vector<unsigned char> ByteArray::getData()
 {
   return data;
+};
+
+void ByteArray::writeByte(char c)
+{
+  data.push_back(c);
 };
 
 void ByteArray::writeByte(int b)
@@ -13,20 +24,22 @@ void ByteArray::writeByte(int b)
 void ByteArray::writeUTFBytes(string s)
 {
   for (char c : s)
-    writeByte(int(c));
+    writeByte(c);
 }
 
 void ByteArray::writeBytes(vector<int> arr, int offset, int length)
 {
-  data.insert(data.begin() + offset, arr.begin(), arr.begin() + length);
+  data.insert(data.end(), arr.begin() + offset, arr.begin() + offset + length);
 }
 
 void ByteArray::writeBytes(int arr[], int offset, int length)
 {
-  data.insert(data.begin() + offset, arr, arr + length);
+  data.insert(data.end(), arr + offset, arr + offset + length);
 }
 
 void ByteArray::writeBytes(vector<int> bytes)
 {
-  data.insert(data.begin(), bytes.begin(), bytes.end());
+  data.insert(data.end(), bytes.begin(), bytes.end());
 }
+
+} // namespace gifencoder

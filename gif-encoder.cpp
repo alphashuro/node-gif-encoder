@@ -1,194 +1,98 @@
 #include "gif-encoder.h"
+#include "string"
+#include "typed-neu-quant.h"
+#include "lzw-encoder.h"
+#include "cmath"
 
 namespace gifencoder
 {
-using v8::Context;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::Isolate;
-using v8::Local;
-using v8::NewStringType;
-using v8::Number;
-using v8::Object;
-using v8::ObjectTemplate;
-using v8::String;
-using v8::Value;
 
-GIFEncoder::GIFEncoder(int w, int h) : width(w), height(h){};
+GIFEncoder::GIFEncoder(int w, int h) : width(w), height(h)
+{
+  pixels.resize(width * height * 3);
+};
 
 GIFEncoder::~GIFEncoder(){};
 
-void GIFEncoder::Init(Local<Object> exports, Local<Object> module)
+void GIFEncoder::start()
 {
-  Isolate *isolate = exports->GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
-
-  Local<ObjectTemplate> addon_data_tpl = ObjectTemplate::New(isolate);
-  addon_data_tpl->SetInternalFieldCount(1);
-  Local<Object> addon_data = addon_data_tpl->NewInstance(context).ToLocalChecked();
-
-  // prep constructor template
-  Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New, addon_data);
-  tpl->SetClassName(String::NewFromUtf8(isolate, "GIFEncoder", NewStringType::kNormal).ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-  // prototype
-  NODE_SET_PROTOTYPE_METHOD(tpl, "start", Start);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "setRepeat", SetRepeat);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "setQuality", SetQuality);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "setFrameRate", SetFrameRate);
-
-  Local<Function> constructor = tpl->GetFunction(context).ToLocalChecked();
-  // addon_data->SetInternalField(0, constructor);
-  module->Set(context, String::NewFromUtf8(isolate, "exports", NewStringType::kNormal).ToLocalChecked(), constructor).FromJust();
+  out.writeUTFBytes("GIF89a");
+  started = true;
 }
 
-void GIFEncoder::New(const FunctionCallbackInfo<Value> &args)
+void GIFEncoder::finish()
 {
-  Isolate *isolate = args.GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
-
-  if (args.IsConstructCall())
-  {
-    // invoked using `new`
-    int width = args[0]->IsUndefined() ? 0 : args[0]->NumberValue(context).FromMaybe(0);
-    int height = args[1]->IsUndefined() ? 0 : args[1]->NumberValue(context).FromMaybe(0);
-
-    GIFEncoder *encoder = new GIFEncoder(width, height);
-    encoder->Wrap(args.This());
-    args.GetReturnValue().Set(args.This());
-  }
-  else
-  {
-    // invoked as plain function `GIFEncoder()`
-    const int argc = 2;
-    Local<Value> argv[argc] = {
-        args[0],
-        args[1]};
-    Local<Function> cons = args.Data().As<Object>()->GetInternalField(0).As<Function>();
-    Local<Object> result = cons->NewInstance(context, argc, argv).ToLocalChecked();
-    args.GetReturnValue().Set(result);
-  }
+  out.writeByte(0x3b);
 }
 
-void GIFEncoder::Start(const FunctionCallbackInfo<Value> &args)
+void GIFEncoder::setRepeat(int r = 0)
 {
-  GIFEncoder *encoder = ObjectWrap::Unwrap<GIFEncoder>(args.Holder());
-
-  string s = "GIF89a";
-
-  transform(
-      s.begin(),
-      s.end(),
-      encoder->out.data.begin(),
-      [](char c) { return int(c); });
-
-  encoder->started = true;
+  repeat = r;
 }
 
-void GIFEncoder::SetRepeat(const FunctionCallbackInfo<Value> &args)
+void GIFEncoder::setQuality(int q)
 {
-  Isolate *isolate = args.GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
+  if (q < 1)
+    q = 1;
 
-  GIFEncoder *encoder = ObjectWrap::Unwrap<GIFEncoder>(args.Holder());
-
-  encoder->repeat = args[0]->IsUndefined() ? 0 : args[0]->NumberValue(context).FromMaybe(0);
+  sample = q;
 }
 
-void GIFEncoder::SetQuality(const v8::FunctionCallbackInfo<v8::Value> &args)
+void GIFEncoder::setFrameRate(int fps)
 {
-  Isolate *isolate = args.GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
-
-  GIFEncoder *encoder = ObjectWrap::Unwrap<GIFEncoder>(args.Holder());
-
-  int quality = args[0]->IsUndefined() ? 0 : args[0]->NumberValue(context).FromMaybe(0);
-  if (quality < 1)
-    quality = 1;
-
-  encoder->sample = quality;
+  delay = round(100 / fps);
 }
 
-void GIFEncoder::SetFrameRate(const v8::FunctionCallbackInfo<v8::Value> &args)
+void GIFEncoder::addFrame(vector<char> frame)
 {
-  Isolate *isolate = args.GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
+  image.resize(frame.size());
 
-  GIFEncoder *encoder = ObjectWrap::Unwrap<GIFEncoder>(args.Holder());
-
-  double fps = args[0]->IsUndefined() ? 0 : args[0]->NumberValue(context).FromMaybe(0);
-
-  encoder->sample = int(round(100 / fps));
-}
-
-void GIFEncoder::AddFrame(const v8::FunctionCallbackInfo<v8::Value> &args)
-{
-  Isolate *isolate = args.GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
-
-  GIFEncoder *encoder = ObjectWrap::Unwrap<GIFEncoder>(args.Holder());
-
-  char *imageData = node::Buffer::Data(args[0]);
-  size_t length = node::Buffer::Length(args[0]);
-
-  vector<char> img(imageData, imageData + length);
-
-  encoder->image.resize(length);
-
-  transform(img.begin(), img.end(), encoder->image.begin(), [](char c) {
+  transform(frame.begin(), frame.end(), image.begin(), [](char c) {
     return int(c);
   });
 
-  encoder->getImagePixels(); // convert to correct format if necessary
-  encoder->analyzePixels();  // build color table & map pixels
+  getImagePixels(); // convert to correct format if necessary
+  analyzePixels();  // build color table & map pixels
 
-  if (encoder->firstFrame)
+  if (firstFrame)
   {
-    encoder->writeLSD();     // logical screen descriptior
-    encoder->writePalette(); // global color table
-    if (encoder->repeat >= 0)
+    writeLSD();     // logical screen descriptior
+    writePalette(); // global color table
+    if (repeat >= 0)
     {
       // use NS app extension to indicate reps
-      encoder->writeNetscapeExt();
+      writeNetscapeExt();
     }
   }
 
-  encoder->writeGraphicCtrlExt(); // write graphic control extension
-  encoder->writeImageDesc();      // image descriptor
-  if (!encoder->firstFrame)
-    encoder->writePalette(); // local color table
-  encoder->writePixels();    // encode and write pixel data
+  writeGraphicCtrlExt(); // write graphic control extension
+  writeImageDesc();      // image descriptor
+  if (!firstFrame)
+    writePalette(); // local color table
+  writePixels();    // encode and write pixel data
 
-  encoder->firstFrame = false;
+  firstFrame = false;
 }
 
 void GIFEncoder::getImagePixels()
 {
-  int size = width * height * 3;
-  int p[size];
-
-  int count = 0;
-
   for (int i = 0; i < height; i++)
   {
     for (int j = 0; j < width; j++)
     {
       int b = (i * width * 4) + j * 4;
 
-      p[count++] = int(image[b]);
-      p[count++] = image[b + 1];
-      p[count++] = image[b + 2];
+      pixels.push_back(image[b]);
+      pixels.push_back(image[b + 1]);
+      pixels.push_back(image[b + 2]);
     }
   }
-
-  pixels.assign(p, p + size);
 }
 
 void GIFEncoder::writePixels()
 {
   LZWEncoder enc = LZWEncoder(width, height, indexedPixels, colorDepth);
+
   enc.encode(out);
 }
 
@@ -197,22 +101,26 @@ void GIFEncoder::analyzePixels()
   int len = pixels.size();
   int nPix = len / 3;
 
-  int indexedPixels[nPix];
+  indexedPixels.resize(nPix);
 
   TypedNeuQuant imgq(pixels, sample);
   imgq.buildColormap(); // create reduced palette
+
   colorTab = imgq.getColormap();
 
   // map image pixels to new palette
   int k = 0;
   for (int j = 0; j < nPix; j++)
   {
+
     int index = imgq.lookupRGB(
-        pixels[k++] & 0xff,
-        pixels[k++] & 0xff,
-        pixels[k++] & 0xff);
+        pixels[k] & 0xff,
+        pixels[k + 1] & 0xff,
+        pixels[k + 2] & 0xff);
+    k += 3;
+
     usedEntry[index] = true;
-    indexedPixels[j] = int(index);
+    indexedPixels.push_back(index);
   }
 
   pixels.clear();
@@ -273,8 +181,8 @@ int GIFEncoder::findClosest(int c)
 void GIFEncoder::writeLSD()
 {
   // logical screen size
-  writeShort(int(width));
-  writeShort(int(height));
+  writeShort(width);
+  writeShort(height);
 
   // packed fields
   out.writeByte(
@@ -291,15 +199,8 @@ void GIFEncoder::writeLSD()
 void GIFEncoder::writeShort(int pValue)
 {
   out.writeByte(pValue & 0xFF);
-  int np = int(pValue) >> 8;
-  int nb = np & 0xFF;
-  out.writeByte(nb);
+  out.writeByte((pValue >> 8) & 0xFF);
 };
-
-// void GIFEncoder::writeShort(int pValue)
-// {
-//   writeShort(int(pValue));
-// };
 
 void GIFEncoder::writePalette()
 {
@@ -392,5 +293,6 @@ void GIFEncoder::writeImageDesc()
         palSize // 6-8 size of color table
     );
   }
-};
+}
+
 } // namespace gifencoder

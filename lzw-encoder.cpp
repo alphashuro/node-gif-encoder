@@ -31,12 +31,14 @@ int masks[] = {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F,
                0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF,
                0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF};
 
-LZWEncoder::LZWEncoder(int width, int height, vector<int> pixels, int colorDepth) : width(width),
-                                                                                    height(height),
-                                                                                    pixels(pixels)
+LZWEncoder::LZWEncoder(int width, int height, vector<int> p, int colorDepth) : width(width),
+                                                                               height(height),
+                                                                               pixels(p)
 {
   initCodeSize = int(colorDepth < 2 ? 2 : colorDepth);
 }
+
+LZWEncoder::~LZWEncoder() {}
 
 void LZWEncoder::encode(ByteArray &outs)
 
@@ -44,6 +46,7 @@ void LZWEncoder::encode(ByteArray &outs)
   outs.writeByte(initCodeSize); // write "initial code size" int
   remaining = width * height;   // reset navigation variables
   curPixel = 0;
+
   compress(int(initCodeSize) + 1, outs); // compress and write the pixel data
   outs.writeByte(int(0));                // write block terminator
 }
@@ -139,10 +142,12 @@ void LZWEncoder::char_out(int c, ByteArray outs)
 {
   accum[a_count++] = c;
   if (a_count >= 254)
+  {
     flush_char(outs);
+  }
 }
 
-int MAXCODE(int n_bits)
+int LZWEncoder::MAXCODE(int n_bits)
 {
   return (1 << n_bits) - 1;
 }
@@ -187,7 +192,7 @@ void LZWEncoder::output(int code, ByteArray outs)
 
   while (cur_bits >= 8)
   {
-    char_out(int(cur_accum & 0xff), outs);
+    char_out(cur_accum & 0xff, outs);
     cur_accum >>= 8;
     cur_bits -= 8;
   }
@@ -223,4 +228,5 @@ void LZWEncoder::output(int code, ByteArray outs)
     flush_char(outs);
   }
 }
+
 } // namespace gifencoder

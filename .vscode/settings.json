@@ -76,7 +76,10 @@
     "*.tcc": "cpp",
     "memory_resource": "cpp",
     "cinttypes": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "iostream": "cpp",
+    "__tree": "cpp",
+    "map": "cpp"
   },
   "editor.formatOnSave": true
 }

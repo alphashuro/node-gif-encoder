@@ -1,14 +1,12 @@
 #ifndef TNEUQUANT_H
 #define TNEUQUANT_H
 
-#include "gif-encoder.h"
-// #include "int.h"
+#include "vector"
 
 using namespace std;
 
 namespace gifencoder
 {
-
 class TypedNeuQuant
 {
 public:
@@ -74,7 +72,6 @@ public:
   int inxsearch(int, int, int);
   void learn();
 
-public:
   void buildColormap();
   vector<int> getColormap();
   int lookupRGB(int, int, int);
