@@ -1,10 +1,10 @@
-const GIFEncoder = require('./build/Debug/addon.node');
+const GIFEncoder = require('../build/Debug/addon.node');
 const fs = require('fs');
 const gifFrames = require('gif-frames');
 const sharp = require('sharp');
 
-const image = './image.jpg';
-const gif = './gif.gif';
+const image = 'example/image.jpg';
+const gif = 'example/gif.gif';
 
 const imagebuf = fs.readFileSync(image);
 const gifbuf = fs.readFileSync(gif);
@@ -29,22 +29,22 @@ async function main() {
   for (const frame of frames) {
     const { data } = frame.getImage();
 
-    // overlay image
-    // resize the base image to fit the overlay gif image dimensions
-    // const image = await sharp(imagebuf)
-    //   .resize({
-    //     width: width,
-    //     height: height,
-    //     fit: sharp.fit.cover,
-    //     position: sharp.strategy.attention
-    //   })
-    //   .raw()
-    //   .composite([{
-    //     input: data,
-    //     blend: 'over',
-    //     raw: { width, height, channels: 4 }
-    //   }])
-    //   .toBuffer();
+    // overlay image;
+    // resize the base image to fit the overlay gif image dimensions;
+    const image = await sharp(imagebuf)
+      .resize({
+        width: width,
+        height: height,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.attention
+      })
+      .raw()
+      .composite([{
+        input: data,
+        blend: 'over',
+        raw: { width, height, channels: 4 }
+      }])
+      .toBuffer();
 
     encoder.setFrameRate(100 / frame.frameInfo.delay);
     encoder.addFrame(data);

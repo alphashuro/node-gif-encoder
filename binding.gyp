@@ -4,13 +4,14 @@
       "target_name": "addon",
       "sources": [ 
         "addon.cc",
-        "node-wrapper.cpp",
-        "gif-encoder.cpp",
-        "typed-neu-quant.cpp",
-        "lzw-encoder.cpp",
-        "byte-array.cpp"
+        "src/node-wrapper.cpp",
+        "src/gif-encoder.cpp",
+        "src/typed-neu-quant.cpp",
+        "src/lzw-encoder.cpp",
+        "src/byte-array.cpp"
       ],
       "include_dirs": [
+        "include",
         "/usr/local/include/boost"
       ],
       "libraries": [
