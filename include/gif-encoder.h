@@ -65,7 +65,7 @@ public:
     Sets frame rate in frames per second.
   */
   void setFrameRate(int fps);
-  void addFrame(vector<char> frame);
+  void addFrame(vector<char> &frame);
   void writePixels();
   void analyzePixels();
   int findClosest(int c);

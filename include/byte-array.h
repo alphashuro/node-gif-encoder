@@ -16,19 +16,19 @@ public:
   ByteArray();
   ~ByteArray();
 
-  vector<unsigned char> getData();
+  vector<unsigned char> &getData();
 
   void writeByte(int b);
 
   void writeByte(char b);
 
-  void writeUTFBytes(string s);
+  void writeUTFBytes(const string s);
 
-  void writeBytes(vector<int> arr, int offset, int length);
+  void writeBytes(const vector<int> &arr, int offset, int length);
 
-  void writeBytes(int arr[], int offset, int length);
+  void writeBytes(const int arr[], int offset, int length);
 
-  void writeBytes(vector<int> bytes);
+  void writeBytes(const vector<int> &bytes);
 };
 
 } // namespace gifencoder

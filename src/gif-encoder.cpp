@@ -42,7 +42,7 @@ void GIFEncoder::setFrameRate(int fps)
   delay = round(100 / fps);
 }
 
-void GIFEncoder::addFrame(vector<char> frame)
+void GIFEncoder::addFrame(vector<char> &frame)
 {
   image = frame;
 
