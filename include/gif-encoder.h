@@ -14,7 +14,7 @@ namespace gifencoder
 class GIFEncoder
 {
 public:
-  vector<int> image; // current frame
+  vector<char> image; // current frame
   void getImagePixels();
 
   int width, height;
@@ -31,13 +31,13 @@ public:
   // frame delay (hundredths)
   unsigned int delay = 0;
 
-  vector<int> pixels;        // BGR int array from frame
-  vector<int> indexedPixels; // converted frame indexed to palette
-  int colorDepth = 8;        // number of bit planes
-  vector<int> colorTab;      // RGB palette
-  map<int, bool> usedEntry;  // active palette entries
-  int palSize = 7;           // color table size (bits-1)
-  int dispose = -1;          // disposal code (-1 = use default)
+  vector<char> pixels;        // BGR int array from frame
+  vector<char> indexedPixels; // converted frame indexed to palette
+  int colorDepth = 8;         // number of bit planes
+  vector<int> colorTab;       // RGB palette
+  map<int, bool> usedEntry;   // active palette entries
+  int palSize = 7;            // color table size (bits-1)
+  int dispose = -1;           // disposal code (-1 = use default)
   bool firstFrame = true;
   int sample = 10; // default sample interval for quantizer
 

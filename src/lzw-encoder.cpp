@@ -31,9 +31,9 @@ int masks[] = {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F,
                0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF,
                0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF};
 
-LZWEncoder::LZWEncoder(int width, int height, vector<int> p, int colorDepth) : width(width),
-                                                                               height(height),
-                                                                               pixels(p)
+LZWEncoder::LZWEncoder(int width, int height, vector<char> p, int colorDepth) : width(width),
+                                                                                height(height),
+                                                                                pixels(p)
 {
   initCodeSize = int(colorDepth < 2 ? 2 : colorDepth);
 }
@@ -51,7 +51,7 @@ void LZWEncoder::encode(ByteArray &outs)
   outs.writeByte(int(0));                // write block terminator
 }
 
-void LZWEncoder::compress(int init_bits, ByteArray outs)
+void LZWEncoder::compress(int init_bits, ByteArray &outs)
 {
   int fcode, c, i, ent, disp, hsize_reg, hshift;
 
@@ -126,7 +126,7 @@ void LZWEncoder::compress(int init_bits, ByteArray outs)
 }
 
 // Flush the packet to disk, and reset the accumulator
-void LZWEncoder::flush_char(ByteArray outs)
+void LZWEncoder::flush_char(ByteArray &outs)
 {
   if (a_count > 0)
   {
@@ -138,7 +138,7 @@ void LZWEncoder::flush_char(ByteArray outs)
 
 // Add a character to the end of the current packet, and if it is 254
 // characters, flush the packet to disk.
-void LZWEncoder::char_out(int c, ByteArray outs)
+void LZWEncoder::char_out(int c, ByteArray &outs)
 {
   accum[a_count++] = c;
   if (a_count >= 254)
@@ -154,7 +154,7 @@ int LZWEncoder::MAXCODE(int n_bits)
 
 // Clear out the hash table
 // table clear for block compress
-void LZWEncoder::cl_block(ByteArray outs)
+void LZWEncoder::cl_block(ByteArray &outs)
 {
   cl_hash(HSIZE);
   free_ent = ClearCode + 2;
@@ -179,7 +179,7 @@ int LZWEncoder::nextPixel()
   return int(int(pix) & 0xff);
 }
 
-void LZWEncoder::output(int code, ByteArray outs)
+void LZWEncoder::output(int code, ByteArray &outs)
 {
   cur_accum &= masks[cur_bits];
 

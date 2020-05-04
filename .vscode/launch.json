@@ -6,9 +6,7 @@
       "request": "launch",
       "name": "Launch Program",
       "program": "/usr/local/bin/node",
-      "args": [
-        "${workspaceFolder}/test.js"
-      ]
+      "args": ["${workspaceFolder}/example/test.js"]
     }
   ]
 }

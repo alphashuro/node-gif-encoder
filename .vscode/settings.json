@@ -80,6 +80,5 @@
     "iostream": "cpp",
     "__tree": "cpp",
     "map": "cpp"
-  },
-  "editor.formatOnSave": true
+  }
 }

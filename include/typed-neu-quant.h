@@ -11,7 +11,7 @@ class TypedNeuQuant
 {
 public:
   static const int netsize = 256; // number of colors used
-  vector<int> pixels;
+  vector<char> pixels;
   int samplefac;
 
   int ncycles = 100; // number of learning cycles
@@ -43,7 +43,7 @@ public:
   int radbiasshift = 8;
   int radbias = (1 << radbiasshift);
   int alpharadbshift = (alphabiasshift + radbiasshift);
-  int alpharadbias = (1 << alpharadbshift);
+  double alpharadbias = (1 << alpharadbshift);
 
   // four primes near 500 - assume no image has a length so large that it is
   // divisible by all four primes
@@ -53,20 +53,25 @@ public:
   int prime4 = 503;
   int minpicturebytes = (3 * prime4);
 
-  int network[netsize][4]; // int[netsize][4]
-  int netindex[256];       // for network lookup - really 256
+  // int network[netsize][4]; // int[netsize][4]
+  vector<vector<double>> network; // int[netsize][4]
+  // int netindex[256];       // for network lookup - really 256
+  vector<int> netindex; // for network lookup - really 256
 
   // bias and freq arrays for learning
-  int bias[netsize];
-  int freq[netsize];
-  int radpower[netsize >> 3];
+  // int bias[netsize];
+  // int freq[netsize];
+  // int radpower[netsize >> 3];
+  vector<double> bias;
+  vector<double> freq;
+  vector<double> radpower;
 
-  TypedNeuQuant(vector<int>, int);
+  TypedNeuQuant(vector<char>, int);
 
   void init();
   void unbiasnet();
-  void altersingle(int, int, int, int, int);
-  void alterneigh(int, int, int, int, int);
+  void altersingle(double, int, double, double, double);
+  void alterneigh(double, int, double, double, double);
   int contest(int, int, int);
   void inxbuild();
   int inxsearch(int, int, int);

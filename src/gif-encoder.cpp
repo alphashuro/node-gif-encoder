@@ -7,10 +7,9 @@
 namespace gifencoder
 {
 
-GIFEncoder::GIFEncoder(int w, int h) : width(w), height(h)
-{
-  pixels.resize(width * height * 3);
-};
+GIFEncoder::GIFEncoder(int w, int h) : width(~~w), height(~~h){
+                                                       // pixels.resize(width * height * 3);
+                                                   };
 
 GIFEncoder::~GIFEncoder(){};
 
@@ -45,11 +44,7 @@ void GIFEncoder::setFrameRate(int fps)
 
 void GIFEncoder::addFrame(vector<char> frame)
 {
-  image.resize(frame.size());
-
-  transform(frame.begin(), frame.end(), image.begin(), [](char c) {
-    return int(c);
-  });
+  image = frame;
 
   getImagePixels(); // convert to correct format if necessary
   analyzePixels();  // build color table & map pixels
@@ -76,6 +71,8 @@ void GIFEncoder::addFrame(vector<char> frame)
 
 void GIFEncoder::getImagePixels()
 {
+  pixels.clear();
+
   for (int i = 0; i < height; i++)
   {
     for (int j = 0; j < width; j++)
@@ -101,7 +98,7 @@ void GIFEncoder::analyzePixels()
   int len = pixels.size();
   int nPix = len / 3;
 
-  indexedPixels.resize(nPix);
+  indexedPixels.clear();
 
   TypedNeuQuant imgq(pixels, sample);
   imgq.buildColormap(); // create reduced palette
@@ -112,12 +109,10 @@ void GIFEncoder::analyzePixels()
   int k = 0;
   for (int j = 0; j < nPix; j++)
   {
-
     int index = imgq.lookupRGB(
-        pixels[k] & 0xff,
-        pixels[k + 1] & 0xff,
-        pixels[k + 2] & 0xff);
-    k += 3;
+        pixels[k++] & 0xff,
+        pixels[k++] & 0xff,
+        pixels[k++] & 0xff);
 
     usedEntry[index] = true;
     indexedPixels.push_back(index);
@@ -135,9 +130,9 @@ void GIFEncoder::analyzePixels()
     // ensure that pixels with full transparency in the RGBA image are using the selected transparent color index in the indexed image.
     for (int pixelIndex = 0; pixelIndex < nPix; pixelIndex++)
     {
-      if (image[pixelIndex * 4 + 3] == int(0))
+      if (image[pixelIndex * 4 + 3] == char(0))
       {
-        indexedPixels[pixelIndex] = int(transIndex);
+        indexedPixels[pixelIndex] = transIndex;
       }
     }
   }
@@ -221,7 +216,7 @@ void GIFEncoder::writeNetscapeExt()
   out.writeUTFBytes("NETSCAPE2.0"); // app id + auth code
   out.writeByte(3);                 // sub-block size
   out.writeByte(1);                 // loop sub-block id
-  writeShort(int(repeat));          // loop count (extra iterations, 0=repeat forever)
+  writeShort(repeat);               // loop count (extra iterations, 0=repeat forever)
   out.writeByte(0);                 // block terminator
 };
 

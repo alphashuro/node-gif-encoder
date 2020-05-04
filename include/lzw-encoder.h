@@ -37,7 +37,7 @@ class LZWEncoder
 {
 public:
   int width, height;
-  vector<int> pixels;
+  vector<char> pixels;
   int initCodeSize;
   int accum[256];
   int htab[HSIZE];
@@ -65,26 +65,26 @@ public:
   int curPixel;
   int n_bits;
 
-  LZWEncoder(int width, int height, vector<int> pixels, int colorDepth);
+  LZWEncoder(int width, int height, vector<char> pixels, int colorDepth);
 
   ~LZWEncoder();
 
   void encode(ByteArray &outs);
 
-  void compress(int init_bits, ByteArray outs);
+  void compress(int init_bits, ByteArray &outs);
 
   // Flush the packet to disk, and reset the accumulator
-  void flush_char(ByteArray outs);
+  void flush_char(ByteArray &outs);
 
   // Add a character to the end of the current packet, and if it is 254
   // characters, flush the packet to disk.
-  void char_out(int c, ByteArray outs);
+  void char_out(int c, ByteArray &outs);
 
   int MAXCODE(int n_bits);
 
   // Clear out the hash table
   // table clear for block compress
-  void cl_block(ByteArray outs);
+  void cl_block(ByteArray &outs);
 
   // Reset code table
   void cl_hash(int hsize);
@@ -92,7 +92,7 @@ public:
   // Return the next pixel from the image
   int nextPixel();
 
-  void output(int code, ByteArray outs);
+  void output(int code, ByteArray &outs);
 };
 } // namespace gifencoder
 
