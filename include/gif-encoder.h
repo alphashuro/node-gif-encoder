@@ -2,9 +2,9 @@
 #define GIFENCODER_H
 
 #include <boost/optional.hpp>
-#include <vector>
 #include "map"
 #include "byte-array.h"
+#include "array"
 
 using namespace std;
 
@@ -13,8 +13,9 @@ namespace gifencoder
 
 class GIFEncoder
 {
+
 public:
-  vector<char> image; // current frame
+  char* image; // current frame
   void getImagePixels();
 
   int width, height;
@@ -33,9 +34,10 @@ public:
 
   char* pixels;        // BGR int array from frame
   int pixLen;
-  vector<char> indexedPixels; // converted frame indexed to palette
+  char* indexedPixels; // converted frame indexed to palette
   int colorDepth = 8;         // number of bit planes
-  vector<int> colorTab;       // RGB palette
+  static const int colorTabLen = 256 * 3;
+  array<int, colorTabLen> colorTab;       // RGB palette
   map<int, bool> usedEntry;   // active palette entries
   int palSize = 7;            // color table size (bits-1)
   int dispose = -1;           // disposal code (-1 = use default)
@@ -43,8 +45,6 @@ public:
   int sample = 10; // default sample interval for quantizer
 
   bool started = false; // started encoding
-
-  // vector<Functions> readStreams = [];
 
   ByteArray out;
 
@@ -66,7 +66,7 @@ public:
     Sets frame rate in frames per second.
   */
   void setFrameRate(int fps);
-  void addFrame(vector<char> &frame);
+  void addFrame(char* frame);
   void writePixels();
   void analyzePixels();
   int findClosest(int c);

@@ -3,6 +3,7 @@
 
 #include "vector"
 #include "string"
+#include "array"
 
 using namespace std;
 
@@ -29,6 +30,9 @@ public:
   void writeBytes(const int arr[], int offset, int length);
 
   void writeBytes(const vector<int> &bytes);
+
+  // template <size_t T>
+  // void writeBytes(const array<int, T> &bytes);
 };
 
 } // namespace gifencoder

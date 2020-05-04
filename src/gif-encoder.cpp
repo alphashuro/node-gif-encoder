@@ -11,12 +11,16 @@ GIFEncoder::GIFEncoder(int w, int h) :
   width(~~w), 
   height(~~h), 
   pixels(new char[(w*h)*3]),
-  pixLen((w * h) * 3)
+  pixLen((w * h) * 3),
+  indexedPixels(new char[w * h])
 {
     // pixels.resize(width * height * 3);
 };
 
-GIFEncoder::~GIFEncoder(){};
+GIFEncoder::~GIFEncoder(){
+  // delete[] pixels;
+  // delete[] indexedPixels;
+};
 
 void GIFEncoder::start()
 {
@@ -47,7 +51,7 @@ void GIFEncoder::setFrameRate(int fps)
   delay = round(100 / fps);
 }
 
-void GIFEncoder::addFrame(vector<char> &frame)
+void GIFEncoder::addFrame(char* frame)
 {
   image = frame;
 
@@ -102,12 +106,10 @@ void GIFEncoder::analyzePixels()
   int len = pixLen;
   int nPix = len / 3;
 
-  indexedPixels.clear();
-
   TypedNeuQuant imgq(pixels, sample, pixLen);
   imgq.buildColormap(); // create reduced palette
 
-  colorTab = imgq.getColormap();
+  imgq.getColormap(colorTab);
 
   // map image pixels to new palette
   int k = 0;
@@ -119,7 +121,7 @@ void GIFEncoder::analyzePixels()
         pixels[k++] & 0xff);
 
     usedEntry[index] = true;
-    indexedPixels.push_back(index);
+    indexedPixels[j] = index;
   }
 
   colorDepth = 8;
@@ -146,7 +148,7 @@ void GIFEncoder::analyzePixels()
 */
 int GIFEncoder::findClosest(int c)
 {
-  if (colorTab.size() == 0)
+  if (colorTabLen == 0)
     return -1;
 
   int r = (c & 0xFF0000) >> 16;
@@ -154,7 +156,7 @@ int GIFEncoder::findClosest(int c)
   int b = (c & 0x0000FF);
   int minpos = 0;
   int dmin = int(256 * 256 * 256);
-  int len = colorTab.size();
+  int len = colorTabLen;
 
   for (int i = 0; i < len;)
   {
@@ -202,8 +204,8 @@ void GIFEncoder::writeShort(int pValue)
 
 void GIFEncoder::writePalette()
 {
-  out.writeBytes(colorTab);
-  int n = (3 * 256) - colorTab.size();
+  out.data.insert(out.data.end(), colorTab.begin(), colorTab.end());
+  int n = (3 * 256) - colorTabLen;
   for (int i = 0; i < n; i++)
     out.writeByte(0);
 }

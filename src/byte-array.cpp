@@ -42,4 +42,9 @@ void ByteArray::writeBytes(const vector<int> &bytes)
   data.insert(data.end(), bytes.begin(), bytes.end());
 }
 
+// template <size_t T>
+// void ByteArray::writeBytes(const array<int, T> &bytes) {
+//   data.insert(data.end(), bytes.begin(), bytes.end());
+// }
+
 } // namespace gifencoder

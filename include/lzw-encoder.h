@@ -23,7 +23,6 @@
   Joe Orost (decvax!vax135!petsd!joe)
 */
 
-#include "vector"
 #include "gif-encoder.h"
 
 using namespace std;
@@ -37,7 +36,7 @@ class LZWEncoder
 {
 public:
   int width, height;
-  vector<char> pixels;
+  char* pixels;
   int initCodeSize;
   int accum[256];
   int htab[HSIZE];
@@ -65,7 +64,7 @@ public:
   int curPixel;
   int n_bits;
 
-  LZWEncoder(int width, int height, vector<char> pixels, int colorDepth);
+  LZWEncoder(int width, int height, char* pixels, int colorDepth);
 
   ~LZWEncoder();
 

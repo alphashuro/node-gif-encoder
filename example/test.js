@@ -16,7 +16,7 @@ main();
 async function main() {
   const frames = await gifFrames({
     url: gifbuf,
-    frames: "1-2",
+    frames: "all",
     outputType: "png",
   });
 
@@ -35,7 +35,7 @@ async function main() {
   const jsend = process.hrtime(jsstart)
   
   fs.writeFileSync("example/resultcpp.gif", result1);
-  fs.writeFileSync("example/resultjs.gif", result1);
+  fs.writeFileSync("example/resultjs.gif", result2);
   
   console.log("done");
   console.info('Execution time (cpp): %ds %dms', cppend[0], cppend[1] / 1000000)
@@ -53,7 +53,6 @@ function overlayGif({ images, width, height }) {
   for (const { image,  delay } of images) {
     encoder.setFrameRate(100 / delay);
     encoder.addFrame(image);
-    console.log(`frame added`);
   }
 
   return encoder.finish();
@@ -80,7 +79,6 @@ function overlayGifJs({ images, width, height }) {
     for (const { image,  delay } of images) {
       encoder.setFrameRate(100 / delay);
       encoder.addFrame(image);
-      console.log(`frame added`);
     }
   
     return encoder.finish(); 

@@ -117,11 +117,8 @@ void NodeWrapper::AddFrame(const v8::FunctionCallbackInfo<v8::Value> &args)
   NodeWrapper *wrapper = ObjectWrap::Unwrap<NodeWrapper>(args.Holder());
 
   char *imageData = node::Buffer::Data(args[0]);
-  size_t length = node::Buffer::Length(args[0]);
 
-  vector<char> img(imageData, imageData + length);
-
-  wrapper->encoder.addFrame(img);
+  wrapper->encoder.addFrame(imageData);
 };
 
 void NodeWrapper::Finish(const v8::FunctionCallbackInfo<v8::Value> &args)

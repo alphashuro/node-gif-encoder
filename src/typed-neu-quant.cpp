@@ -1,7 +1,6 @@
 #include "typed-neu-quant.h"
 #include "iostream"
 #include "cstdlib"
-#include "vector"
 #include "cmath"
 #include <array>
 
@@ -424,9 +423,9 @@ void TypedNeuQuant::buildColormap()
     > [r, g, b, r, g, b, r, g, b, ..]
     >
   */
-vector<int> TypedNeuQuant::getColormap()
+void TypedNeuQuant::getColormap(array<int, netsize * 3> & map)
 {
-  vector<int> map;
+  // int map[netsize * 3];
   int index[netsize];
 
   for (int i = 0; i < netsize; i++)
@@ -435,11 +434,10 @@ vector<int> TypedNeuQuant::getColormap()
   for (int l = 0; l < netsize; l++)
   {
     int j = index[l];
-    map.push_back(network[j][0]);
-    map.push_back(network[j][1]);
-    map.push_back(network[j][2]);
+    map[(l*3) + 0] = network[j][0];
+    map[(l*3) + 1] = network[j][1];
+    map[(l*3) + 2] = network[j][2];
   }
-  return map;
 };
 /*
     Method: lookupRGB

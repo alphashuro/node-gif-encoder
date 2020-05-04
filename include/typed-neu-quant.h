@@ -1,7 +1,6 @@
 #ifndef TNEUQUANT_H
 #define TNEUQUANT_H
 
-#include "vector"
 
 using namespace std;
 
@@ -54,19 +53,14 @@ public:
   int prime4 = 503;
   int minpicturebytes = (3 * prime4);
 
-  // int network[netsize][4]; // int[netsize][4]
   double network[netsize][4]; // int[netsize][4]
-  // int netindex[256];       // for network lookup - really 256
   int netindex[256]; // for network lookup - really 256
 
   // bias and freq arrays for learning
   double bias[netsize];
   double freq[netsize];
   double radpower[netsize >> 3];
-  // vector<double> bias;
-  // vector<double> freq;
-  // vector<double> radpower;
-
+  
   TypedNeuQuant(char*&, int, int);
 
   void init();
@@ -79,7 +73,7 @@ public:
   void learn();
 
   void buildColormap();
-  vector<int> getColormap();
+  void getColormap(array<int, netsize * 3> &map);
   int lookupRGB(int, int, int);
 };
 } // namespace gifencoder

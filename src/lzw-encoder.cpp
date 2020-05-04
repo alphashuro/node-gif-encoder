@@ -31,7 +31,7 @@ int masks[] = {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F,
                0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF,
                0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF};
 
-LZWEncoder::LZWEncoder(int width, int height, vector<char> p, int colorDepth) : width(width),
+LZWEncoder::LZWEncoder(int width, int height, char* p, int colorDepth) : width(width),
                                                                                 height(height),
                                                                                 pixels(p)
 {
