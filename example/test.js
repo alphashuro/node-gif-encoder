@@ -1,4 +1,4 @@
-const GIFEncoder = require("../build/Debug/addon.node");
+const GIFEncoder = require("../build/Release/addon.node");
 const GIFEncoderJS = require("gifencoder")
 const fs = require("fs");
 const gifFrames = require("gif-frames");

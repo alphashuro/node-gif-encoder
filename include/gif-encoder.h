@@ -31,7 +31,8 @@ public:
   // frame delay (hundredths)
   unsigned int delay = 0;
 
-  vector<char> pixels;        // BGR int array from frame
+  char* pixels;        // BGR int array from frame
+  int pixLen;
   vector<char> indexedPixels; // converted frame indexed to palette
   int colorDepth = 8;         // number of bit planes
   vector<int> colorTab;       // RGB palette

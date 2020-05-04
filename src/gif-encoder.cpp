@@ -7,9 +7,14 @@
 namespace gifencoder
 {
 
-GIFEncoder::GIFEncoder(int w, int h) : width(~~w), height(~~h){
-                                                       // pixels.resize(width * height * 3);
-                                                   };
+GIFEncoder::GIFEncoder(int w, int h) : 
+  width(~~w), 
+  height(~~h), 
+  pixels(new char[(w*h)*3]),
+  pixLen((w * h) * 3)
+{
+    // pixels.resize(width * height * 3);
+};
 
 GIFEncoder::~GIFEncoder(){};
 
@@ -71,17 +76,16 @@ void GIFEncoder::addFrame(vector<char> &frame)
 
 void GIFEncoder::getImagePixels()
 {
-  pixels.clear();
-
+  int k = 0;
   for (int i = 0; i < height; i++)
   {
     for (int j = 0; j < width; j++)
     {
       int b = (i * width * 4) + j * 4;
 
-      pixels.push_back(image[b]);
-      pixels.push_back(image[b + 1]);
-      pixels.push_back(image[b + 2]);
+      pixels[k++] = image[b];
+      pixels[k++] = image[b + 1];
+      pixels[k++] = image[b + 2];
     }
   }
 }
@@ -95,12 +99,12 @@ void GIFEncoder::writePixels()
 
 void GIFEncoder::analyzePixels()
 {
-  int len = pixels.size();
+  int len = pixLen;
   int nPix = len / 3;
 
   indexedPixels.clear();
 
-  TypedNeuQuant imgq(pixels, sample);
+  TypedNeuQuant imgq(pixels, sample, pixLen);
   imgq.buildColormap(); // create reduced palette
 
   colorTab = imgq.getColormap();
@@ -118,7 +122,6 @@ void GIFEncoder::analyzePixels()
     indexedPixels.push_back(index);
   }
 
-  pixels.clear();
   colorDepth = 8;
   palSize = 7;
 

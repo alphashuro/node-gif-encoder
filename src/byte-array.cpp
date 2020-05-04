@@ -6,7 +6,7 @@ namespace gifencoder
 ByteArray::ByteArray(){};
 ByteArray::~ByteArray(){};
 
-vector<unsigned char> ByteArray::getData()
+vector<unsigned char>& ByteArray::getData()
 {
   return data;
 };
@@ -21,23 +21,23 @@ void ByteArray::writeByte(int b)
   data.push_back(b);
 };
 
-void ByteArray::writeUTFBytes(string s)
+void ByteArray::writeUTFBytes(const string s)
 {
   for (char c : s)
     writeByte(c);
 }
 
-void ByteArray::writeBytes(vector<int> arr, int offset, int length)
+void ByteArray::writeBytes(const vector<int> &arr, int offset, int length)
 {
   data.insert(data.end(), arr.begin() + offset, arr.begin() + offset + length);
 }
 
-void ByteArray::writeBytes(int arr[], int offset, int length)
+void ByteArray::writeBytes(const int arr[], int offset, int length)
 {
   data.insert(data.end(), arr + offset, arr + offset + length);
 }
 
-void ByteArray::writeBytes(vector<int> bytes)
+void ByteArray::writeBytes(const vector<int> &bytes)
 {
   data.insert(data.end(), bytes.begin(), bytes.end());
 }

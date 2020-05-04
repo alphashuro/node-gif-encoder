@@ -11,7 +11,8 @@ class TypedNeuQuant
 {
 public:
   static const int netsize = 256; // number of colors used
-  vector<char> pixels;
+  char*& pixels;
+  int pixLen;
   int samplefac;
 
   int ncycles = 100; // number of learning cycles
@@ -54,19 +55,19 @@ public:
   int minpicturebytes = (3 * prime4);
 
   // int network[netsize][4]; // int[netsize][4]
-  vector<vector<double>> network; // int[netsize][4]
+  double network[netsize][4]; // int[netsize][4]
   // int netindex[256];       // for network lookup - really 256
-  vector<int> netindex; // for network lookup - really 256
+  int netindex[256]; // for network lookup - really 256
 
   // bias and freq arrays for learning
-  // int bias[netsize];
-  // int freq[netsize];
-  // int radpower[netsize >> 3];
-  vector<double> bias;
-  vector<double> freq;
-  vector<double> radpower;
+  double bias[netsize];
+  double freq[netsize];
+  double radpower[netsize >> 3];
+  // vector<double> bias;
+  // vector<double> freq;
+  // vector<double> radpower;
 
-  TypedNeuQuant(vector<char>, int);
+  TypedNeuQuant(char*&, int, int);
 
   void init();
   void unbiasnet();
