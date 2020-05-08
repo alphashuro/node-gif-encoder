@@ -10,17 +10,20 @@
         "src/lzw-encoder.cpp",
         "src/byte-array.cpp"
       ],
+      'libraries': ['-framework OpenGL', '-framework OpenCL'],
       "include_dirs": [
         "include",
         "/usr/local/include/boost"
       ],
-      "libraries": [
-          # "/usr/local/lib/libboost_regex.dylib"
-      ],
+      'library_dirs': ['/usr/local/lib'],
       "cflags_cc!": [ "-fno-rtti", "-fno-exceptions" ],
       "cflags!": [ "-fno-exceptions", "-stdlib=libc++", "-std=c++17" ],
       "conditions": [
         ['OS=="mac"', {
+          'make_global_settings': [
+            ['CC', '/usr/bin/clang'],
+            ['CXX', '/usr/bin/clang++'],
+          ],
             "xcode_settings": {
                 'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11','-stdlib=libc++', '-v'],
                 'OTHER_LDFLAGS': ['-stdlib=libc++'],

@@ -3,6 +3,9 @@
 #include "cstdlib"
 #include "cmath"
 #include <array>
+#include "boost/compute/container/vector.hpp"
+
+using namespace std;
 
 namespace gifencoder
 {
@@ -31,10 +34,10 @@ void TypedNeuQuant::init()
   {
     double v = (i << (netbiasshift + 8)) / netsize;
 
-    network[i][0] = v;
-    network[i][1] = v;
-    network[i][2] = v;
-    network[i][3] = 0;
+    network_0[i] = v;
+    network_1[i] = v;
+    network_2[i] = v;
+    network_3[i] = 0;
 
     freq[i] = intbias / netsize;
     bias[i] = 0;
@@ -50,12 +53,10 @@ void TypedNeuQuant::unbiasnet()
 {
   for (int i = 0; i < netsize; i++)
   {
-    auto p = network[i];
-
-    network[i][0] = int(p[0]) >> netbiasshift;
-    network[i][1] = int(p[1]) >> netbiasshift;
-    network[i][2] = int(p[2]) >> netbiasshift;
-    network[i][3] = i; // record color number
+    network_0[i] = int(network_0[i]) >> netbiasshift;
+    network_1[i] = int(network_1[i]) >> netbiasshift;
+    network_2[i] = int(network_2[i]) >> netbiasshift;
+    network_3[i] = i; // record color number
   }
 };
 /*
@@ -65,15 +66,13 @@ void TypedNeuQuant::unbiasnet()
   */
 void TypedNeuQuant::altersingle(double alpha, int i, double b, double g, double r)
 {
-  auto p = network[i];
+  auto res1 = network_0[i] - ((alpha * (network_0[i] - b)) / initalpha);
+  auto res2 = network_1[i] - ((alpha * (network_1[i] - g)) / initalpha);
+  auto res3 = network_2[i] - ((alpha * (network_2[i] - r)) / initalpha);
 
-  auto res1 = p[0] - ((alpha * (p[0] - b)) / initalpha);
-  auto res2 = p[1] - ((alpha * (p[1] - g)) / initalpha);
-  auto res3 = p[2] - ((alpha * (p[2] - r)) / initalpha);
-
-  network[i][0] = res1;
-  network[i][1] = res2;
-  network[i][2] = res3;
+  network_0[i] = res1;
+  network_1[i] = res2;
+  network_2[i] = res3;
 };
 
 /*
@@ -98,9 +97,9 @@ void TypedNeuQuant::alterneigh(double radius, int i, double b, double g, double 
     {
       
       int p = j++;
-      network[p][0] -= (a * (network[p][0] - b)) / alpharadbias; 
-      network[p][1] -= (a * (network[p][1] - g)) / alpharadbias; 
-      network[p][2] -= (a * (network[p][2] - r)) / alpharadbias; 
+      network_0[p] -= (a * (network_0[p] - b)) / alpharadbias; 
+      network_1[p] -= (a * (network_1[p] - g)) / alpharadbias; 
+      network_2[p] -= (a * (network_2[p] - r)) / alpharadbias; 
       // auto p = network[j++];
       // p[0] -= (a * (p[0] - b)) / alpharadbias;
       // p[1] -= (a * (p[1] - g)) / alpharadbias;
@@ -110,9 +109,9 @@ void TypedNeuQuant::alterneigh(double radius, int i, double b, double g, double 
     if (k > lo)
     {
       int p = k--;
-      network[p][0] -= (a * (network[p][0] - b)) / alpharadbias;
-      network[p][1] -= (a * (network[p][1] - g)) / alpharadbias;
-      network[p][2] -= (a * (network[p][2] - r)) / alpharadbias;
+      network_0[p] -= (a * (network_0[p] - b)) / alpharadbias;
+      network_1[p] -= (a * (network_1[p] - g)) / alpharadbias;
+      network_2[p] -= (a * (network_2[p] - r)) / alpharadbias;
       // auto p = network[k--];
       // p[0] -= (a * (p[0] - b)) / alpharadbias;
       // p[1] -= (a * (p[1] - g)) / alpharadbias;
@@ -142,9 +141,7 @@ int TypedNeuQuant::contest(int b, int g, int r)
   double dist, biasdist, betafreq;
   for (int i = 0; i < netsize; i++)
   {
-    auto n = network[i];
-
-    dist = abs(n[0] - b) + abs(n[1] - g) + abs(n[2] - r);
+    dist = abs(network_0[i] - b) + abs(network_1[i] - g) + abs(network_2[i] - r);
     if (dist < bestd)
     {
       bestd = dist;
@@ -180,33 +177,27 @@ void TypedNeuQuant::inxbuild()
   double smallval, previouscol = 0, startpos = 0;
   for (int i = 0; i < netsize; i++)
   {
-    auto p = network[i];
-
     smallpos = i;
-    smallval = p[1]; // index on g
+    smallval = network_1[i]; // index on g
     // find smallest in i..netsize-1
     for (int j = i + 1; j < netsize; j++)
     {
-      auto q = network[j];
-
-      if (q[1] < smallval)
+      if (network_1[j] < smallval)
       { // index on g
         smallpos = j;
-        smallval = q[1]; // index on g
+        smallval = network_1[j]; // index on g
       }
     }
-
-    auto q = network[smallpos];
 
     // swap p (i) and q (smallpos) entries
     if (i != smallpos)
     {
       double j;
 
-      j = network[smallpos][0]; network[smallpos][0] = network[i][0]; network[i][0] = j;
-      j = network[smallpos][1]; network[smallpos][1] = network[i][1]; network[i][1] = j;
-      j = network[smallpos][2]; network[smallpos][2] = network[i][2]; network[i][2] = j;
-      j = network[smallpos][3]; network[smallpos][3] = network[i][3]; network[i][3] = j;
+      j = network_0[smallpos]; network_0[smallpos] = network_0[i]; network_0[i] = j;
+      j = network_1[smallpos]; network_1[smallpos] = network_1[i]; network_1[i] = j;
+      j = network_2[smallpos]; network_2[smallpos] = network_2[i]; network_2[i] = j;
+      j = network_3[smallpos]; network_3[smallpos] = network_3[i]; network_3[i] = j;
     }
     // smallval entry is now in position i
 
@@ -243,9 +234,7 @@ int TypedNeuQuant::inxsearch(int b, int g, int r)
   {
     if (i < netsize)
     {
-      auto p = network[i];
-
-      dist = network[i][1] - g; // inx key
+      dist = network_1[i] - g; // inx key
       if (dist >= bestd)
         i = netsize; // stop iter
       else
@@ -254,29 +243,27 @@ int TypedNeuQuant::inxsearch(int b, int g, int r)
         if (dist < 0)
           dist = -dist;
 
-        a = p[0] - b;
+        a = network_0[i] - b;
         if (a < 0)
           a = -a;
         dist += a;
         if (dist < bestd)
         {
-          a = p[2] - r;
+          a = network_2[i] - r;
           if (a < 0)
             a = -a;
           dist += a;
           if (dist < bestd)
           {
             bestd = dist;
-            best = p[3];
+            best = network_3[i];
           }
         }
       }
     }
     if (j >= 0)
     {
-      auto p = network[j];
-
-      dist = g - network[j][1]; // inx key - reverse dif
+      dist = g - network_1[j]; // inx key - reverse dif
       if (dist >= bestd)
         j = -1; // stop iter
       else
@@ -284,20 +271,20 @@ int TypedNeuQuant::inxsearch(int b, int g, int r)
         j--;
         if (dist < 0)
           dist = -dist;
-        a = p[0] - b;
+        a = network_0[j] - b;
         if (a < 0)
           a = -a;
         dist += a;
         if (dist < bestd)
         {
-          a = p[2] - r;
+          a = network_2[j] - r;
           if (a < 0)
             a = -a;
           dist += a;
           if (dist < bestd)
           {
             bestd = dist;
-            best = p[3];
+            best = network_3[j];
           }
         }
       }
@@ -407,10 +394,25 @@ void TypedNeuQuant::learn()
   */
 void TypedNeuQuant::buildColormap()
 {
+  auto t1 = chrono::high_resolution_clock::now();
   init();
+  auto t2 = chrono::high_resolution_clock::now();
+  cout << "init: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+  t1 = chrono::high_resolution_clock::now();
   learn();
+  t2 = chrono::high_resolution_clock::now();
+  cout << "learn: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+  t1 = chrono::high_resolution_clock::now();
   unbiasnet();
+  t2 = chrono::high_resolution_clock::now();
+  cout << "unbiasnet: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+  t1 = chrono::high_resolution_clock::now();
   inxbuild();
+  t2 = chrono::high_resolution_clock::now();
+  cout << "inxbuild: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
 };
 /*
     Method: getColormap
@@ -423,20 +425,20 @@ void TypedNeuQuant::buildColormap()
     > [r, g, b, r, g, b, r, g, b, ..]
     >
   */
-void TypedNeuQuant::getColormap(array<int, netsize * 3> & map)
+void TypedNeuQuant::getColormap(std::array<int, netsize * 3> & map)
 {
   // int map[netsize * 3];
   int index[netsize];
 
   for (int i = 0; i < netsize; i++)
-    index[int(network[i][3])] = i;
+    index[int(network_3[i])] = i;
 
   for (int l = 0; l < netsize; l++)
   {
     int j = index[l];
-    map[(l*3) + 0] = network[j][0];
-    map[(l*3) + 1] = network[j][1];
-    map[(l*3) + 2] = network[j][2];
+    map[(l*3) + 0] = network_0[j];
+    map[(l*3) + 1] = network_1[j];
+    map[(l*3) + 2] = network_2[j];
   }
 };
 /*

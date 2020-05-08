@@ -3,6 +3,8 @@
 #include "typed-neu-quant.h"
 #include "lzw-encoder.h"
 #include "cmath"
+#include <chrono>
+#include "iostream"
 
 namespace gifencoder
 {
@@ -14,7 +16,6 @@ GIFEncoder::GIFEncoder(int w, int h) :
   pixLen((w * h) * 3),
   indexedPixels(new char[w * h])
 {
-    // pixels.resize(width * height * 3);
 };
 
 GIFEncoder::~GIFEncoder(){
@@ -55,25 +56,67 @@ void GIFEncoder::addFrame(char* frame)
 {
   image = frame;
 
+  auto t1 = chrono::high_resolution_clock::now();
   getImagePixels(); // convert to correct format if necessary
-  analyzePixels();  // build color table & map pixels
+  auto t2 = chrono::high_resolution_clock::now();
+
+  // cout << "getImagePixels: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+  t1 = chrono::high_resolution_clock::now();
+  analyzePixels(); // build color table & map pixels
+  t2 = chrono::high_resolution_clock::now();
+
+  // cout << "analyzePixels: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
 
   if (firstFrame)
   {
-    writeLSD();     // logical screen descriptior
+    t1 = chrono::high_resolution_clock::now();
+    writeLSD(); // logical screen descriptior
+    t2 = chrono::high_resolution_clock::now();
+
+    // cout << "writeLSD: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+    t1 = chrono::high_resolution_clock::now();
     writePalette(); // global color table
+    t2 = chrono::high_resolution_clock::now();
+    // cout << "writePalette: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
     if (repeat >= 0)
     {
+      t1 = chrono::high_resolution_clock::now();
       // use NS app extension to indicate reps
       writeNetscapeExt();
+      t2 = chrono::high_resolution_clock::now();
+
+      // cout << "writeNetscapeExt: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
     }
   }
 
+  t1 = chrono::high_resolution_clock::now();
   writeGraphicCtrlExt(); // write graphic control extension
-  writeImageDesc();      // image descriptor
+  t2 = chrono::high_resolution_clock::now();
+
+  // cout << "writeGraphicCtrlExt: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+  t1 = chrono::high_resolution_clock::now();
+  writeImageDesc(); // image descriptor
+  t2 = chrono::high_resolution_clock::now();
+
+  // cout << "writeImageDesc: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
   if (!firstFrame)
+  {
+
+    t1 = chrono::high_resolution_clock::now();
     writePalette(); // local color table
-  writePixels();    // encode and write pixel data
+    t2 = chrono::high_resolution_clock::now();
+
+    // cout << "writePalette: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+  }
+  t1 = chrono::high_resolution_clock::now();
+  writePixels(); // encode and write pixel data
+  t2 = chrono::high_resolution_clock::now();
+
+  //******** cout << "writePixels: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
 
   firstFrame = false;
 }
@@ -105,12 +148,21 @@ void GIFEncoder::analyzePixels()
 {
   int len = pixLen;
   int nPix = len / 3;
-
   TypedNeuQuant imgq(pixels, sample, pixLen);
+
+  auto t1 = chrono::high_resolution_clock::now();
   imgq.buildColormap(); // create reduced palette
+  auto t2 = chrono::high_resolution_clock::now();
 
+  // cout << "buildColormap: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+  t1 = chrono::high_resolution_clock::now();
   imgq.getColormap(colorTab);
+  t2 = chrono::high_resolution_clock::now();
 
+  // cout << "getColormap: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
+
+  t1 = chrono::high_resolution_clock::now();
   // map image pixels to new palette
   int k = 0;
   for (int j = 0; j < nPix; j++)
@@ -123,6 +175,8 @@ void GIFEncoder::analyzePixels()
     usedEntry[index] = true;
     indexedPixels[j] = index;
   }
+  t2 = chrono::high_resolution_clock::now();
+  // ********* cout << "lookupRGB: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
 
   colorDepth = 8;
   palSize = 7;
@@ -130,8 +184,12 @@ void GIFEncoder::analyzePixels()
   // get closest match to transparent color if specified
   if (transparent.has_value())
   {
+    t1 = chrono::high_resolution_clock::now();
     transIndex = findClosest(transparent.value());
+    t2 = chrono::high_resolution_clock::now();
+    cout << "findClosest: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
 
+    t1 = chrono::high_resolution_clock::now();
     // ensure that pixels with full transparency in the RGBA image are using the selected transparent color index in the indexed image.
     for (int pixelIndex = 0; pixelIndex < nPix; pixelIndex++)
     {
@@ -140,6 +198,8 @@ void GIFEncoder::analyzePixels()
         indexedPixels[pixelIndex] = transIndex;
       }
     }
+    t2 = chrono::high_resolution_clock::now();
+    cout << "ensure transparent: " << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << endl;
   }
 }
 

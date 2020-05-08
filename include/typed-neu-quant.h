@@ -1,8 +1,7 @@
 #ifndef TNEUQUANT_H
 #define TNEUQUANT_H
 
-
-using namespace std;
+#include "boost/compute/container/vector.hpp"
 
 namespace gifencoder
 {
@@ -53,7 +52,10 @@ public:
   int prime4 = 503;
   int minpicturebytes = (3 * prime4);
 
-  double network[netsize][4]; // int[netsize][4]
+  double network_0[netsize]; // int[netsize][4]
+  double network_1[netsize]; // int[netsize][4]
+  double network_2[netsize]; // int[netsize][4]
+  double network_3[netsize]; // int[netsize][4]
   int netindex[256]; // for network lookup - really 256
 
   // bias and freq arrays for learning
@@ -73,7 +75,7 @@ public:
   void learn();
 
   void buildColormap();
-  void getColormap(array<int, netsize * 3> &map);
+  void getColormap(std::array<int, netsize * 3> &map);
   int lookupRGB(int, int, int);
 };
 } // namespace gifencoder

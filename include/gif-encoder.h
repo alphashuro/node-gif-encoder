@@ -5,6 +5,7 @@
 #include "map"
 #include "byte-array.h"
 #include "array"
+#include "boost/compute/container/vector.hpp"
 
 using namespace std;
 

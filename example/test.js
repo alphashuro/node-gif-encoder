@@ -1,4 +1,4 @@
-const GIFEncoder = require("../build/Release/addon.node");
+const GIFEncoder = require("../build/Debug/addon.node");
 const GIFEncoderJS = require("gifencoder")
 const fs = require("fs");
 const gifFrames = require("gif-frames");
@@ -16,7 +16,7 @@ main();
 async function main() {
   const frames = await gifFrames({
     url: gifbuf,
-    frames: "all",
+    frames: "1-3",
     outputType: "png",
   });
 
@@ -25,10 +25,13 @@ async function main() {
 
   const images = await Promise.all(frames.map(overlayImage))
 
+  console.log('starting cpp...')
+
   const cppstart = process.hrtime()
   const result1 = await overlayGif({ images, width, height })
   const cppend = process.hrtime(cppstart)
 
+  console.log('cpp done. starting js...')
 
   const jsstart = process.hrtime()
   const result2 = await overlayGifJs({ images, width, height })
