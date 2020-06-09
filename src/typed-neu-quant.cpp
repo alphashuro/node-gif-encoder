@@ -4,6 +4,8 @@
 #include "cmath"
 #include <array>
 #include "boost/compute/container/vector.hpp"
+#include "valarray"
+#include "numeric"
 
 using namespace std;
 
@@ -25,21 +27,30 @@ namespace gifencoder
 TypedNeuQuant::TypedNeuQuant(char*& p, int s, int pixLen) : 
 pixels(p), 
 samplefac(s), 
-pixLen(pixLen)
+pixLen(pixLen),
+network_0(netsize),
+network_1(netsize),
+network_2(netsize),
+network_3(double(0), netsize)
 {};
 
 void TypedNeuQuant::init()
 {
+  iota(begin(network_0), end(network_0), 0);
+
+  int bitshift = netbiasshift + 8;
+
+  network_0 <<= bitshift;
+  network_0 /= netsize;
+
+  network_1 = network_0;
+  network_2 = network_0;
+
+  auto freq_val = intbias / netsize;
+
   for (int i = 0; i < netsize; i++)
   {
-    double v = (i << (netbiasshift + 8)) / netsize;
-
-    network_0[i] = v;
-    network_1[i] = v;
-    network_2[i] = v;
-    network_3[i] = 0;
-
-    freq[i] = intbias / netsize;
+    freq[i] = freq_val;
     bias[i] = 0;
   }
 };
@@ -51,6 +62,10 @@ void TypedNeuQuant::init()
   */
 void TypedNeuQuant::unbiasnet()
 {
+  // network_0 >>= double(netbiasshift);
+  // network_1 >>= netbiasshift;
+  // network_2 >>= netbiasshift;
+
   for (int i = 0; i < netsize; i++)
   {
     network_0[i] = int(network_0[i]) >> netbiasshift;
